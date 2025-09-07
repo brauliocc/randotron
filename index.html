@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Don't forget to check user status</title>
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #181a20;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      color: #f3f4f6;
+    }
+    .container {
+      max-width: 4020px;
+      margin: 48px auto;
+      background: #23262f;
+      border-radius: 18px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+      padding: 36px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      border: 1.5px solid #282c34;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    h1 {
+      font-size: 1.7rem;
+      text-align: center;
+      margin-bottom: 18px;
+      color: #f3f4f6;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    label {
+      font-size: 1.05rem;
+      margin-bottom: 7px;
+      color: #bfc7d5;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #353945;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      background: #23262f;
+      color: #f3f4f6;
+      transition: border 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
+      outline: none;
+      margin-top: 2px;
+    }
+    input[type="text"]:focus, textarea:focus {
+      border: 1.5px solid #6c47ff;
+      box-shadow: 0 0 0 2px #6c47ff33;
+    }
+    textarea {
+      min-height: 70px;
+      max-height: 220px;
+      resize: vertical;
+    }
+    form > div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group {
+      margin-bottom: 32px;
+    }
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+    @media (max-width: 500px) {
+      .container {
+        margin: 12px;
+        padding: 18px 4px;
+      }
+      h1 {
+        font-size: 1.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>dont forget to check user status</h1>
+    <form>
+      <div class="form-group">
+        <label for="passcode">Passcode</label>
+        <input type="text" id="passcode" name="passcode" placeholder="Enter passcode">
+      </div>
+      <div class="form-group">
+        <label for="message">Message/Link</label>
+        <textarea id="message" name="message" placeholder="Enter message or link"></textarea>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

@@ -21,6 +21,7 @@
       max-width: 4020px;
       margin: 48px auto;
       background: #23262f;
+  position: relative;
       border-radius: 18px;
       box-shadow: 0 4px 32px rgba(0,0,0,0.18);
       padding: 36px 28px;
@@ -35,15 +36,15 @@
       font-size: 1.7rem;
       text-align: center;
       margin-bottom: 18px;
-      color: #f3f4f6;
+      color: #6c47ff;
       font-weight: 700;
       letter-spacing: 0.01em;
     }
     label {
-      font-size: 1.05rem;
+      font-size: 1.12rem;
       margin-bottom: 7px;
-      color: #bfc7d5;
-      font-weight: 600;
+      color: #ffffff;
+      font-weight: 700;
       letter-spacing: 0.01em;
     }
     input[type="text"], textarea {
@@ -53,7 +54,8 @@
       border-radius: 8px;
       font-size: 1.05rem;
       background: #23262f;
-      color: #f3f4f6;
+    color: rgba(243,244,246,0.4) !important;
+    -webkit-text-fill-color: rgba(243,244,246,0.4) !important;
       transition: border 0.2s, box-shadow 0.2s;
       box-sizing: border-box;
       outline: none;
@@ -62,6 +64,14 @@
     input[type="text"]:focus, textarea:focus {
       border: 1.5px solid #6c47ff;
       box-shadow: 0 0 0 2px #6c47ff33;
+    }
+    
+    input::placeholder, textarea::placeholder {
+      color: #bfc7d5;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 400;
+      opacity: 1;
     }
     textarea {
       min-height: 70px;
@@ -137,6 +147,73 @@
       box-shadow: 0 4px 16px #6c47ff44;
       transform: translateY(-2px) scale(1.03);
     }
+
+    .add-multi-btn {
+      display: block;
+      width: 100%;
+      padding: 12px 14px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1.5px solid #6c47ff;
+      background: linear-gradient(180deg, rgba(108,71,255,0.04), rgba(108,71,255,0.02));
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #6c47ff22;
+      transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+    }
+    .add-multi-btn:hover, .add-multi-btn:focus {
+      background: #6c47ff11;
+      box-shadow: 0 6px 18px #6c47ff33;
+      transform: translateY(-2px);
+    }
+    
+    .theme-toggle {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1.2px solid transparent;
+      background: #ffffff;
+      color: #0b0b0d;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, transform 0.12s;
+      box-shadow: 0 2px 8px rgba(15,15,15,0.08);
+    }
+    .theme-toggle:hover { transform: translateY(-1px); }
+
+    .light-theme {
+      background: #f6f7fb;
+      color: #0b0b0d;
+    }
+    .light-theme .theme-toggle {
+      background: #0b0b0d;
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(2,6,23,0.16);
+    }
+    .light-theme .container {
+      background: #ffffff;
+      border-color: #e6e9ef;
+      box-shadow: 0 6px 24px rgba(15,15,15,0.06);
+    }
+  .light-theme h1 { color: #6c47ff; }
+  .light-theme label { color: #1f2937; }
+    .light-theme input[type="text"], .light-theme textarea {
+      background: #ffffff;
+      border-color: #e6e9ef;
+      color: rgba(15,15,20,0.85) !important;
+      -webkit-text-fill-color: rgba(15,15,20,0.85) !important;
+    }
+    .light-theme .toggle-btn { color: #374151; }
+  .light-theme .toggle-btn.active { background: #4f46e5; color: #fff; }
+  
+  .light-theme .add-multi-btn { color: #0b0b0d; border-color: #4f46e5; box-shadow: 0 4px 14px #4f46e533; }
+  .light-theme .toggle-group { background: #f7f8fb; border-color: #e6e9ef; }
+  .light-theme .toggle-btn { border-color: #e6e9ef; }
     @media (max-width: 500px) {
       .container {
         margin: 12px;
@@ -150,12 +227,15 @@
 </head>
 <body>
   <div class="container">
-    <h1>dont forget to check user status</h1>
+  <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">Light</button>
+  <h1>RandoTron</h1>
     <div class="toggle-group">
       <input type="radio" name="mode" id="modeText" value="text" checked hidden>
       <label for="modeText" class="toggle-btn" id="labelText">Text</label>
       <input type="radio" name="mode" id="modeImage" value="image" hidden>
       <label for="modeImage" class="toggle-btn" id="labelImage">Image with Caption</label>
+  <input type="radio" name="mode" id="modeMulti" value="multi" hidden>
+  <label for="modeMulti" class="toggle-btn" id="labelMulti">Multi Links</label>
     </div>
     <form id="randotronForm">
       <div class="form-group">
@@ -165,7 +245,7 @@
       <div id="textFields">
         <div class="form-group">
           <label for="message">Message/Link</label>
-          <textarea id="message" name="message" placeholder="Enter message or link"></textarea>
+          <input type="text" id="message" name="message" placeholder="Enter message or link">
         </div>
       </div>
       <div id="imageFields" style="display: none;">
@@ -178,6 +258,13 @@
           <input type="text" id="imageLink" name="imageLink" placeholder="Enter image URL">
         </div>
       </div>
+      <div id="multiFields" style="display: none;">
+        <div class="form-group">
+          <label>Links</label>
+          <div id="multiList" style="display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;"></div>
+          <button type="button" id="addMultiBtn" class="add-multi-btn">+ Add link</button>
+        </div>
+      </div>
       <button type="submit" class="send-btn">Send</button>
       <div id="result" style="margin-top: 18px; font-size: 1.05rem;"></div>
     </form>
@@ -187,27 +274,170 @@
   
   const modeText = document.getElementById('modeText');
   const modeImage = document.getElementById('modeImage');
+  const modeMulti = document.getElementById('modeMulti');
   const labelText = document.getElementById('labelText');
   const labelImage = document.getElementById('labelImage');
+  const labelMulti = document.getElementById('labelMulti');
   const textFields = document.getElementById('textFields');
   const imageFields = document.getElementById('imageFields');
+  const multiFields = document.getElementById('multiFields');
+  const multiList = document.getElementById('multiList');
+  const addMultiBtn = document.getElementById('addMultiBtn');
 
   function updateMode() {
     if (modeText.checked) {
       textFields.style.display = '';
       imageFields.style.display = 'none';
+      multiFields.style.display = 'none';
       labelText.classList.add('active');
       labelImage.classList.remove('active');
-    } else {
+      labelMulti.classList.remove('active');
+    } else if (modeImage.checked) {
       textFields.style.display = 'none';
       imageFields.style.display = '';
+      multiFields.style.display = 'none';
       labelText.classList.remove('active');
       labelImage.classList.add('active');
+      labelMulti.classList.remove('active');
+    } else if (modeMulti.checked) {
+      textFields.style.display = 'none';
+      imageFields.style.display = 'none';
+      multiFields.style.display = '';
+      labelText.classList.remove('active');
+      labelImage.classList.remove('active');
+      labelMulti.classList.add('active');
     }
   }
   modeText.addEventListener('change', updateMode);
   modeImage.addEventListener('change', updateMode);
+  modeMulti.addEventListener('change', updateMode);
   updateMode();
+
+  const themeToggle = document.getElementById('themeToggle');
+  const root = document.documentElement;
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      root.classList.add('light-theme');
+      
+  themeToggle.textContent = 'Dark';
+    } else {
+      root.classList.remove('light-theme');
+      
+  themeToggle.textContent = 'Light';
+    }
+    localStorage.setItem('randotron-theme', theme);
+  }
+  const savedTheme = localStorage.getItem('randotron-theme') || 'dark';
+  applyTheme(savedTheme);
+  themeToggle.addEventListener('click', () => {
+    const current = root.classList.contains('light-theme') ? 'light' : 'dark';
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  
+  function createMultiRow(caption = '', url = '', isProtected = false) {
+    const wrapper = document.createElement('div');
+  wrapper.style.display = 'flex';
+  wrapper.style.gap = '8px';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.flexWrap = 'wrap';
+  wrapper.style.width = '100%';
+
+    const cap = document.createElement('input');
+    cap.type = 'text';
+    cap.placeholder = 'Caption';
+    cap.value = caption;
+    cap.style.flex = '1';
+    cap.style.padding = '10px';
+  cap.style.minWidth = '0';
+  cap.style.boxSizing = 'border-box';
+  cap.style.borderRadius = '8px';
+    
+
+    const urlIn = document.createElement('input');
+    urlIn.type = 'text';
+    urlIn.placeholder = 'Link URL';
+    urlIn.value = url;
+    urlIn.style.flex = '1';
+    urlIn.style.padding = '10px';
+  urlIn.style.minWidth = '0';
+  urlIn.style.boxSizing = 'border-box';
+  urlIn.style.borderRadius = '8px';
+    
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = '✕';
+    removeBtn.title = 'Remove';
+  removeBtn.style.padding = '8px 10px';
+    removeBtn.style.borderRadius = '8px';
+    removeBtn.style.border = '1px solid #353945';
+    removeBtn.style.background = '#2b2f39';
+    removeBtn.style.color = '#fff';
+  removeBtn.style.flex = '0 0 auto';
+
+    removeBtn.disabled = true;
+    removeBtn.setAttribute('aria-disabled', 'true');
+    removeBtn.style.opacity = '0.45';
+    removeBtn.style.cursor = 'not-allowed';
+
+    function updateRemoveState() {
+      const canRemove = !isProtected && cap.value.trim().length > 0 && urlIn.value.trim().length > 0;
+      removeBtn.disabled = !canRemove;
+      removeBtn.setAttribute('aria-disabled', String(!canRemove));
+      removeBtn.style.opacity = canRemove ? '1' : '0.45';
+      removeBtn.style.cursor = canRemove ? 'pointer' : 'not-allowed';
+    }
+
+    cap.addEventListener('input', updateRemoveState);
+    urlIn.addEventListener('input', updateRemoveState);
+
+    removeBtn.addEventListener('click', (e) => {
+      
+      if (removeBtn.disabled) return;
+      wrapper.remove();
+    });
+    
+  if (isProtected) updateRemoveState();
+
+    wrapper.appendChild(cap);
+    wrapper.appendChild(urlIn);
+    wrapper.appendChild(removeBtn);
+    return wrapper;
+  }
+
+  addMultiBtn.addEventListener('click', () => {
+    const resultDiv = document.getElementById('result');
+    const lastRow = multiList.lastElementChild;
+    if (lastRow) {
+      const inputs = lastRow.querySelectorAll('input');
+      const lastFilled = inputs[0].value.trim().length > 0 && inputs[1].value.trim().length > 0;
+      if (!lastFilled) {
+        resultDiv.textContent = 'Please fill the previous caption and URL before adding a new link.';
+        return;
+      }
+    }
+    resultDiv.textContent = '';
+    multiList.appendChild(createMultiRow());
+  });
+
+  if (multiList.children.length === 0) {
+    multiList.appendChild(createMultiRow('', '', true));
+  multiList.appendChild(createMultiRow('', '', true));
+  }
+
+  async function postText(passcode, text) {
+    const resp = await fetch('https://eac-151931141732.northamerica-northeast2.run.app', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: passcode, text: text })
+    });
+    if (!resp.ok) {
+      const errorText = await resp.text();
+      throw new Error(errorText || 'Request failed');
+    }
+    return resp.json().catch(() => ({}));
+  }
 
   document.getElementById('randotronForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -215,66 +445,66 @@
     const resultDiv = document.getElementById('result');
     const form = document.getElementById('randotronForm');
     function resetFormFields() {
-      form.reset();
-      updateMode();
+  const passcodeVal = document.getElementById('passcode').value;
+  form.reset();
+  document.getElementById('passcode').value = passcodeVal;
+
+  multiList.innerHTML = '';
+  multiList.appendChild(createMultiRow('', '', true));
+  multiList.appendChild(createMultiRow('', '', true));
+  updateMode();
     }
+
     resultDiv.textContent = 'Sending...';
-    if (modeText.checked) {
-      // Text mode: original behavior
-      const message = document.getElementById('message').value;
-      try {
-        const response = await fetch('https://eac-151931141732.northamerica-northeast2.run.app', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ passcode: passcode, text: message })
-        });
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || 'Request failed');
-        }
-        const data = await response.json().catch(() => ({}));
+
+    try {
+      if (modeText.checked) {
+        const message = document.getElementById('message').value;
+        const data = await postText(passcode, message);
         resultDiv.textContent = 'Success! ' + (data.message || 'Message sent.');
         resetFormFields();
-      } catch (err) {
-        resultDiv.textContent = 'Error: ' + err.message;
+        return;
       }
-    } else {
-      // Image with Caption mode: send caption, then image link
-      const caption = document.getElementById('caption').value;
-      const imageLink = document.getElementById('imageLink').value;
-      try {
-        // First POST: caption
-        const response1 = await fetch('https://eac-151931141732.northamerica-northeast2.run.app', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ passcode: passcode, text: caption })
-        });
-        if (!response1.ok) {
-          const errorText = await response1.text();
-          throw new Error(errorText || 'Caption request failed');
-        }
-        // Second POST: image link
-        const response2 = await fetch('https://eac-151931141732.northamerica-northeast2.run.app', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ passcode: passcode, text: imageLink })
-        });
-        if (!response2.ok) {
-          const errorText = await response2.text();
-          throw new Error(errorText || 'Image link request failed');
-        }
-        const data2 = await response2.json().catch(() => ({}));
+
+      if (modeImage.checked) {
+        const caption = document.getElementById('caption').value;
+        const imageLink = document.getElementById('imageLink').value;
+        await postText(passcode, caption);
+        const data2 = await postText(passcode, imageLink);
         resultDiv.textContent = 'Success! ' + (data2.message || 'Caption and image sent.');
         resetFormFields();
-      } catch (err) {
-        resultDiv.textContent = 'Error: ' + err.message;
+        return;
       }
+
+  if (modeMulti.checked) {
+        
+        const rows = Array.from(multiList.children).map(row => {
+          const inputs = row.querySelectorAll('input');
+          return { caption: inputs[0].value.trim(), url: inputs[1].value.trim() };
+        }).filter(r => r.caption || r.url);
+
+        if (rows.length === 0) {
+          resultDiv.textContent = 'Please add at least one link.';
+          return;
+        }
+
+        
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          if (r.caption) {
+            await postText(passcode, r.caption);
+          }
+          if (r.url) {
+            await postText(passcode, r.url);
+          }
+        }
+
+        resultDiv.textContent = 'Success! All links sent.';
+        resetFormFields();
+        return;
+      }
+    } catch (err) {
+      resultDiv.textContent = 'Error: ' + err.message;
     }
   });
 </script>

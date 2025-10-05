@@ -531,8 +531,8 @@
           return { caption: inputs[0].value.trim(), url: inputs[1].value.trim() };
         }).filter(r => r.caption || r.url);
 
-        if (rows.length === 0) {
-          resultDiv.textContent = 'Please add at least one link.';
+        if (rows.length < 2) {
+          resultDiv.textContent = 'Please add at least two link.';
           return;
         }
 
@@ -540,10 +540,30 @@
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           if (r.caption) {
-            await postText(passcode, r.caption);
-          }
-          if (r.url) {
-            await postText(passcode, r.url);
+            try {
+              await postText(passcode, r.caption);
+            } catch (err) {
+              resultDiv.textContent = `Error sending caption for link ${i + 1}: ${err.message}`;
+              return;
+            }
+
+            if (r.url) {
+              try {
+                await postText(passcode, r.url);
+              } catch (err) {
+                resultDiv.textContent = `Error sending URL for link ${i + 1} after caption succeeded: ${err.message}`;
+                return;
+              }
+            }
+
+          } else if (r.url) {
+            // No caption, attempt to send URL alone
+            try {
+              await postText(passcode, r.url);
+            } catch (err) {
+              resultDiv.textContent = `Error sending URL for link ${i + 1}: ${err.message}`;
+              return;
+            }
           }
         }
 

@@ -430,7 +430,8 @@
     removeBtn.style.cursor = 'not-allowed';
 
     function updateRemoveState() {
-      const canRemove = !isProtected && cap.value.trim().length > 0 && urlIn.value.trim().length > 0;
+      // Allow removing a row if it's not protected and at least one of caption or URL is filled.
+      const canRemove = !isProtected && (cap.value.trim().length > 0 || urlIn.value.trim().length > 0);
       removeBtn.disabled = !canRemove;
       removeBtn.setAttribute('aria-disabled', String(!canRemove));
       removeBtn.style.opacity = canRemove ? '1' : '0.45';
@@ -459,9 +460,9 @@
     const lastRow = multiList.lastElementChild;
     if (lastRow) {
       const inputs = lastRow.querySelectorAll('input');
-      const lastFilled = inputs[0].value.trim().length > 0 && inputs[1].value.trim().length > 0;
-      if (!lastFilled) {
-        resultDiv.textContent = 'Please fill the previous caption and URL before adding a new link.';
+      const lastUrlFilled = inputs[1].value.trim().length > 0;
+      if (!lastUrlFilled) {
+        resultDiv.textContent = 'Please fill the previous URL before adding a new link.';
         return;
       }
     }

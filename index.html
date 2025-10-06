@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Don't forget to check user status</title>
+  <title>RandoTron</title>
   <!-- Google Fonts: Inter + Orbitron (cyberpunk display) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -173,6 +173,13 @@
       transform: translateY(-2px) scale(1.03);
     }
 
+    .scheduled-btn {
+  background: #06b6d4 !important; /* cyan */
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(6,182,212,0.18) !important;
+      transform: translateY(-1px) scale(1.01);
+    }
+
     .add-multi-btn {
       display: block;
       width: 100%;
@@ -282,6 +289,8 @@
       <label for="modeText" class="toggle-btn" id="labelText">Text</label>
       <input type="radio" name="mode" id="modeImage" value="image" hidden>
       <label for="modeImage" class="toggle-btn" id="labelImage">Image Caption</label>
+  <input type="radio" name="mode" id="modeDelay" value="delay" hidden>
+  <label for="modeDelay" class="toggle-btn" id="labelDelay">Delay</label>
       <input type="radio" name="mode" id="modeMulti" value="multi" hidden>
       <label for="modeMulti" class="toggle-btn" id="labelMulti">Multi Links</label>
     </div>
@@ -306,6 +315,22 @@
           <input type="text" id="imageLink" name="imageLink" placeholder="Enter image URL">
         </div>
       </div>
+      <div id="delayFields" style="display: none;">
+        <div class="form-group">
+          <label for="delayCaption">Caption</label>
+          <input type="text" id="delayCaption" name="delayCaption" placeholder="Enter caption">
+        </div>
+        <div class="form-group">
+          <label for="delayImageLink">Image Link</label>
+          <input type="text" id="delayImageLink" name="delayImageLink" placeholder="Enter image URL">
+        </div>
+        <div class="form-group">
+          <label for="delayHours">Delay (hours)</label>
+          <input type="text" id="delayHours" name="delayHours" placeholder="e.g. 1.5" inputmode="decimal" pattern="\d+(\.\d)?" value="0">
+          <div style="margin-top:8px; font-size:0.95rem; color:#cbd5e1; font-style:italic; color: #9b7bff;">Send will occur after the countdown below (page must remain open for it to complete).</div>
+          <div id="delayCountdown" style="margin-top:8px; font-weight:700;"></div>
+        </div>
+      </div>
       <div id="multiFields" style="display: none;">
         <div class="form-group">
           <label>Links</label>
@@ -322,12 +347,16 @@
   
   const modeText = document.getElementById('modeText');
   const modeImage = document.getElementById('modeImage');
+  const modeDelay = document.getElementById('modeDelay');
   const modeMulti = document.getElementById('modeMulti');
   const labelText = document.getElementById('labelText');
   const labelImage = document.getElementById('labelImage');
+  const labelDelay = document.getElementById('labelDelay');
   const labelMulti = document.getElementById('labelMulti');
   const textFields = document.getElementById('textFields');
   const imageFields = document.getElementById('imageFields');
+  const delayFields = document.getElementById('delayFields');
+  const delayHoursEl = document.getElementById('delayHours');
   const multiFields = document.getElementById('multiFields');
   const multiList = document.getElementById('multiList');
   const addMultiBtn = document.getElementById('addMultiBtn');
@@ -336,30 +365,134 @@
     if (modeText.checked) {
       textFields.style.display = '';
       imageFields.style.display = 'none';
+      delayFields && (delayFields.style.display = 'none');
       multiFields.style.display = 'none';
       labelText.classList.add('active');
       labelImage.classList.remove('active');
+      labelDelay && labelDelay.classList.remove('active');
       labelMulti.classList.remove('active');
     } else if (modeImage.checked) {
       textFields.style.display = 'none';
       imageFields.style.display = '';
+      delayFields && (delayFields.style.display = 'none');
       multiFields.style.display = 'none';
       labelText.classList.remove('active');
       labelImage.classList.add('active');
+      labelDelay && labelDelay.classList.remove('active');
       labelMulti.classList.remove('active');
     } else if (modeMulti.checked) {
       textFields.style.display = 'none';
       imageFields.style.display = 'none';
+      delayFields && (delayFields.style.display = 'none');
       multiFields.style.display = '';
       labelText.classList.remove('active');
       labelImage.classList.remove('active');
+      labelDelay && labelDelay.classList.remove('active');
       labelMulti.classList.add('active');
+    } else if (modeDelay && modeDelay.checked) {
+      // Delay mode shows the delayFields but hides others
+      textFields.style.display = 'none';
+      imageFields.style.display = 'none';
+      delayFields && (delayFields.style.display = '');
+      multiFields.style.display = 'none';
+      labelText.classList.remove('active');
+      labelImage.classList.remove('active');
+      labelDelay && labelDelay.classList.add('active');
+      labelMulti.classList.remove('active');
     }
   }
   modeText.addEventListener('change', updateMode);
   modeImage.addEventListener('change', updateMode);
   modeMulti.addEventListener('change', updateMode);
+  if (modeDelay) modeDelay.addEventListener('change', updateMode);
   updateMode();
+
+  // --- send button enable/disable logic ---
+  const passcodeEl = document.getElementById('passcode');
+  const messageEl = document.getElementById('message');
+  const imageLinkEl = document.getElementById('imageLink');
+  const captionEl = document.getElementById('caption');
+  const delayImageLinkEl = document.getElementById('delayImageLink');
+  const multiAddBtn = document.getElementById('addMultiBtn');
+  const sendBtnEl = document.querySelector('.send-btn');
+
+  function countValidMultiRows() {
+    const rows = Array.from(multiList.children);
+    const valid = rows.filter(row => {
+      const inputs = row.querySelectorAll('input');
+      return (inputs[0] && inputs[0].value.trim()) || (inputs[1] && inputs[1].value.trim());
+    });
+    return valid.length;
+  }
+
+  function updateSendButtonState() {
+    if (!sendBtnEl) return;
+    const hasPass = passcodeEl && passcodeEl.value.trim().length > 0;
+    let enabled = false;
+
+    if (modeText.checked) {
+      enabled = hasPass && messageEl && messageEl.value.trim().length > 0;
+    } else if (modeImage.checked) {
+      // require at least an image link for image caption mode
+      enabled = hasPass && imageLinkEl && imageLinkEl.value.trim().length > 0;
+    } else if (modeDelay && modeDelay.checked) {
+      // require at least an image link for delay mode and hours > 0
+      const hoursVal = delayHoursEl ? parseFloat(delayHoursEl.value || '0') : 0;
+      enabled = hasPass && delayImageLinkEl && delayImageLinkEl.value.trim().length > 0 && !isNaN(hoursVal) && hoursVal > 0;
+    } else if (modeMulti.checked) {
+      // multi requires at least two filled link rows (existing behavior)
+      enabled = hasPass && countValidMultiRows() >= 2;
+    }
+
+    sendBtnEl.disabled = !enabled;
+    if (!enabled) {
+      sendBtnEl.style.opacity = '0.6';
+      sendBtnEl.style.cursor = 'not-allowed';
+    } else {
+      sendBtnEl.style.opacity = '';
+      sendBtnEl.style.cursor = '';
+    }
+  }
+
+  // wire events to re-check state
+  [passcodeEl, messageEl, imageLinkEl, captionEl, delayImageLinkEl].forEach(el => {
+    if (!el) return;
+    el.addEventListener('input', updateSendButtonState);
+  });
+
+  // watch multi list for input changes and structural changes
+  if (multiList) {
+    multiList.addEventListener('input', updateSendButtonState);
+    const mo = new MutationObserver(updateSendButtonState);
+    mo.observe(multiList, { childList: true, subtree: true, characterData: true });
+  }
+  if (multiAddBtn) multiAddBtn.addEventListener('click', () => setTimeout(updateSendButtonState, 50));
+
+  // run once at startup
+  updateSendButtonState();
+
+  // make the delay hours input accept decimals with up to one decimal place
+  if (delayHoursEl) {
+    delayHoursEl.addEventListener('input', (e) => {
+      let v = e.target.value.replace(',', '.');
+      // allow only digits and dot
+      v = v.replace(/[^0-9.]/g, '');
+      // collapse extra dots and limit to one decimal digit
+      const parts = v.split('.');
+      if (parts.length > 1) {
+        // keep first part and first digit of the fractional part
+        parts[1] = parts[1].slice(0, 1);
+        v = parts[0] + '.' + parts[1];
+      } else {
+        v = parts[0];
+      }
+      if (v.startsWith('.')) v = '0' + v;
+      e.target.value = v;
+    });
+    delayHoursEl.addEventListener('blur', (e) => {
+      if (e.target.value === '') e.target.value = '0';
+    });
+  }
 
   const themeToggle = document.getElementById('themeToggle');
   const root = document.documentElement;
@@ -493,6 +626,7 @@
     const passcode = document.getElementById('passcode').value;
     const resultDiv = document.getElementById('result');
     const form = document.getElementById('randotronForm');
+    const sendBtn = form.querySelector('.send-btn');
     function resetFormFields() {
   const passcodeVal = document.getElementById('passcode').value;
   form.reset();
@@ -502,6 +636,18 @@
   multiList.appendChild(createMultiRow('', '', true));
   multiList.appendChild(createMultiRow('', '', true));
   updateMode();
+  // restore send button to default state
+  if (sendBtn) {
+    sendBtn.classList.remove('scheduled-btn');
+    sendBtn.textContent = 'Send';
+  }
+  // clear any pending interval
+  if (window._randotronDelayInterval) {
+    clearInterval(window._randotronDelayInterval);
+    window._randotronDelayInterval = null;
+  }
+  // update send button state after reset
+  try { updateSendButtonState(); } catch (e) {}
     }
 
     resultDiv.textContent = 'Sending...';
@@ -522,6 +668,79 @@
         const data2 = await postText(passcode, imageLink);
         resultDiv.textContent = 'Success! ' + (data2.message || 'Caption and image sent.');
         resetFormFields();
+        return;
+      }
+
+      if (modeDelay && modeDelay.checked) {
+        const caption = document.getElementById('delayCaption').value;
+        const imageLink = document.getElementById('delayImageLink').value;
+  const hours = parseFloat(document.getElementById('delayHours').value || '0');
+        const resultCountdown = document.getElementById('delayCountdown');
+
+        // validate > 0 and at most one decimal place
+        if (isNaN(hours) || hours <= 0 || !/^-?\d+(\.\d)?$/.test(String(document.getElementById('delayHours').value || '0'))) {
+          resultDiv.textContent = 'Please enter a number greater than 0 with at most one decimal place (e.g. 0.5 or 1).';
+          return;
+        }
+
+        // Calculate target time (ms)
+        const now = Date.now();
+        const delayMs = Math.max(0, Math.round(hours * 60 * 60 * 1000));
+        const target = now + delayMs;
+
+        // Show initial message and start countdown that runs while page is open
+        resultDiv.textContent = `Scheduled to send in ${hours} hour(s). Countdown will run while this page remains open.`;
+        // change send button into scheduled state
+        if (sendBtn) {
+          sendBtn.classList.add('scheduled-btn');
+          sendBtn.textContent = 'Scheduled Send';
+        }
+
+        // Clear any existing interval stored on window
+        if (window._randotronDelayInterval) {
+          clearInterval(window._randotronDelayInterval);
+          window._randotronDelayInterval = null;
+        }
+
+        function updateCountdownDisplay() {
+          const remaining = target - Date.now();
+          if (remaining <= 0) {
+            resultCountdown.textContent = 'Sending now...';
+            clearInterval(window._randotronDelayInterval);
+            window._randotronDelayInterval = null;
+            // perform the sends: caption then imageLink
+            (async () => {
+              try {
+                if (caption) await postText(passcode, caption);
+                if (imageLink) await postText(passcode, imageLink);
+                // clear the 'Sending now...' countdown message and show success
+                if (resultCountdown) resultCountdown.textContent = '';
+                resultDiv.textContent = 'Success! Delayed send completed.';
+                resetFormFields();
+              } catch (err) {
+                resultDiv.textContent = 'Error during delayed send: ' + err.message;
+                // restore send button if there was an error
+                if (sendBtn) {
+                  sendBtn.classList.remove('scheduled-btn');
+                  sendBtn.textContent = 'Send';
+                }
+              }
+            })();
+            return;
+          }
+          // format remaining into h:mm:ss
+          const sec = Math.floor(remaining / 1000);
+          const hoursLeft = Math.floor(sec / 3600);
+          const minsLeft = Math.floor((sec % 3600) / 60);
+          const secsLeft = sec % 60;
+          resultCountdown.textContent = `${hoursLeft}h ${String(minsLeft).padStart(2,'0')}m ${String(secsLeft).padStart(2,'0')}s`;
+        }
+
+        updateCountdownDisplay();
+        // store interval so we can clear if user reschedules
+        window._randotronDelayInterval = setInterval(updateCountdownDisplay, 1000);
+
+        // Do not reset form fields now; they will be reset after successful send
         return;
       }
 

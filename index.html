@@ -103,7 +103,7 @@
     }
     .toggle-group {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       gap: 0;
       margin-bottom: 18px;
@@ -111,11 +111,15 @@
       border-radius: 8px;
       overflow: hidden;
       border: 1.5px solid #353945;
-      width: fit-content;
-      margin-left: auto;
-      margin-right: auto;
+      /* make the toggle row span the available width */
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+      margin-right: 0;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       height: 65px;
+      box-sizing: border-box;
+      padding: 0;
     }
     .toggle-btn {
       padding: 10px 16px;
@@ -134,8 +138,9 @@
       justify-content: center;
       text-align: center;
       white-space: normal;
-      max-width: 220px;
-      min-width: 72px;
+  max-width: 220px;
+  min-width: 0; /* allow shrinking on small screens */
+  flex: 1 1 auto; /* distribute available width evenly */
       height: 100%;
       line-height: 1.15;
       padding-top: 8px;

@@ -768,6 +768,7 @@
         }
 
         let failedAtIndex = -1;
+        let failedOnCaption = false;
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           if (r.caption) {
@@ -775,6 +776,7 @@
               await postText(passcode, r.caption);
             } catch (err) {
               failedAtIndex = i;
+              failedOnCaption = true;
               resultDiv.textContent = `Error sending caption for link ${i + 1}: ${err.message}`;
               break;
             }
@@ -784,6 +786,7 @@
                 await postText(passcode, r.url);
               } catch (err) {
                 failedAtIndex = i;
+                failedOnCaption = false;
                 resultDiv.textContent = `Error sending URL for link ${i + 1} after caption succeeded: ${err.message}`;
                 break;
               }
@@ -794,10 +797,35 @@
               await postText(passcode, r.url);
             } catch (err) {
               failedAtIndex = i;
+              failedOnCaption = false;
               resultDiv.textContent = `Error sending URL for link ${i + 1}: ${err.message}`;
               break;
             }
           }
+        }
+
+        // If there was an error, remove successful entries and reposition remaining rows sequentially
+        if (failedAtIndex !== -1) {
+          // Get all rows from the failed one onwards
+          const remainingRows = rows.slice(failedAtIndex);
+          
+          // Remove all rows before and including the failed one
+          for (let i = 0; i <= failedAtIndex; i++) {
+            if (rows[i] && rows[i].element) {
+              rows[i].element.remove();
+            }
+          }
+
+          // Add remaining rows back in sequence
+          remainingRows.forEach((row, index) => {
+            multiList.appendChild(row.element);
+            // If this is the failed row and it failed on caption, clear only the caption
+            if (index === 0 && failedOnCaption) {
+              const inputs = row.element.querySelectorAll('input');
+              if (inputs[0]) inputs[0].value = ''; // Clear only caption, leave URL
+            }
+          });
+          return;
         }
 
         // If there was an error, remove successful entries and reposition remaining rows sequentially
